@@ -1,0 +1,22 @@
+# Environments & Secrets
+.env
+.env.backup
+.env.production
+*.key
+
+# Dependencies & Vendors
+node_modules/
+vendor/
+dist/
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.sw?
+
+# Logs & Testing
+*.log
+.phpunit.result.cache
+.phpunit.cache

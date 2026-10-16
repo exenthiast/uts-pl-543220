@@ -19,7 +19,7 @@ RUN npm ci
 COPY . .
 
 # Argument build untuk URL API (default jika tidak disetel saat docker build)
-ARG VITE_API_BASE_URL=http://localhost:8000/api
+ARG VITE_API_BASE_URL=/api
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 
 # Kompilasi aset Vite ke folder /app/dist

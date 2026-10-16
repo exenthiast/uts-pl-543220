@@ -1,0 +1,80 @@
+# ==============================================================================
+# Docker Compose Orchestration - UTS Rekayasa Perangkat Lunak (NIM 543220)
+# Memenuhi CPMK6, CPMK7, dan Nilai Tambahan FrankenPHP
+# Menjalankan 3 service utama: db (PostgreSQL), backend (Laravel 13), frontend (Vue 3)
+# ==============================================================================
+
+services:
+  # 1. Service Basis Data: PostgreSQL 16 Alpine
+  db:
+    image: postgres:16-alpine
+    container_name: uts-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-uts_db}
+      POSTGRES_USER: ${DB_USERNAME:-uts_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-uts_password123}
+    volumes:
+      # Named volume untuk retensi dan persistensi data (Soal 6d)
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - uts-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-uts_user} -d ${DB_DATABASE:-uts_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Service Backend: Laravel 13 + FrankenPHP Application Server (+10 Bonus)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: uts-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_NAME: "${APP_NAME:-Katalog Pustaka}"
+      APP_ENV: "${APP_ENV:-production}"
+      APP_KEY: "${APP_KEY}"
+      APP_DEBUG: "${APP_DEBUG:-false}"
+      APP_URL: "${APP_URL:-http://localhost:8000}"
+      # Komunikasi ke database menggunakan nama service 'db', bukan IP laptop (Soal 6b)
+      DB_CONNECTION: "${DB_CONNECTION:-pgsql}"
+      DB_HOST: db
+      DB_PORT: "${DB_PORT:-5432}"
+      DB_DATABASE: "${DB_DATABASE:-uts_db}"
+      DB_USERNAME: "${DB_USERNAME:-uts_user}"
+      DB_PASSWORD: "${DB_PASSWORD:-uts_password123}"
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    networks:
+      - uts-network
+
+  # 3. Service Frontend: Vue.js 3 SPA + Nginx Web Server
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: "/api"
+    container_name: uts-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    networks:
+      - uts-network
+
+# Named volume untuk memastikan persistensi data saat container dimatikan (Soal 6d)
+volumes:
+  db_data:
+    name: uts_db_data
+
+# Jaringan bridge internal terisolasi antar container
+networks:
+  uts-network:
+    driver: bridge

@@ -1,0 +1,14 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+vendor
+node_modules
+tests
+phpunit.xml
+*.md
+.editorconfig
+.gitattributes
+.DS_Store
+storage/*.key

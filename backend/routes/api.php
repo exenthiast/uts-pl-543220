@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookController;
+use App\Http\Controllers\HealthController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -9,10 +10,13 @@ use Illuminate\Support\Facades\Route;
 | API Routes
 |--------------------------------------------------------------------------
 |
-| Login is the only public endpoint. All other endpoints strictly require
+| Login and Health are public endpoints. All other endpoints strictly require
 | a valid Laravel Sanctum Bearer token.
 |
 */
+
+// Public Health Probe
+Route::get('/health', [HealthController::class, 'check']);
 
 // Public Authentication Endpoint
 Route::post('/login', [AuthController::class, 'login']);

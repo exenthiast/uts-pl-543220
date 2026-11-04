@@ -20,3 +20,6 @@ Thumbs.db
 *.log
 .phpunit.result.cache
 .phpunit.cache
+
+# PDF Documents
+*.pdf

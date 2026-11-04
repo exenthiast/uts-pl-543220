@@ -24,6 +24,11 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # 2. Service Backend: Laravel 13 + FrankenPHP Application Server (+10 Bonus)
   backend:
@@ -48,10 +53,17 @@ services:
       DB_DATABASE: "${DB_DATABASE:-uts_db}"
       DB_USERNAME: "${DB_USERNAME:-uts_user}"
       DB_PASSWORD: "${DB_PASSWORD:-uts_password123}"
+      LOG_CHANNEL: "${LOG_CHANNEL:-stdout}"
+      LOG_LEVEL: "${LOG_LEVEL:-debug}"
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     networks:
       - uts-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # 3. Service Frontend: Vue.js 3 SPA + Nginx Web Server
   frontend:
@@ -68,6 +80,11 @@ services:
       - "${FRONTEND_PORT:-80}:80"
     networks:
       - uts-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 # Named volume untuk memastikan persistensi data saat container dimatikan (Soal 6d)
 volumes:

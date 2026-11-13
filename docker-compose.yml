@@ -92,10 +92,87 @@ services:
         max-size: "10m"
         max-file: "3"
 
-# Named volume untuk memastikan persistensi data saat container dimatikan (Soal 6d)
+  # 4. Service Prometheus: Metric Collection & Alert Evaluation (P11)
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: uts-prometheus
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+      - "--web.enable-lifecycle"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - uts-network
+    depends_on:
+      - cadvisor
+      - node-exporter
+
+  # 5. Service Grafana: Metrics Visualization & Dashboards (P11)
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: uts-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - uts-network
+    depends_on:
+      - prometheus
+
+  # 6. Service cAdvisor: Container Resource Metrics Collector (P11)
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: uts-cadvisor
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - "8080:8080"
+    networks:
+      - uts-network
+
+  # 7. Service Node Exporter: Host OS & Hardware Metrics Collector (P11)
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: uts-node-exporter
+    restart: unless-stopped
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+    ports:
+      - "9100:9100"
+    networks:
+      - uts-network
+
+# Named volume untuk memastikan persistensi data saat container dimatikan
 volumes:
   db_data:
     name: uts_db_data
+  prometheus_data:
+    name: uts_prometheus_data
+  grafana_data:
+    name: uts_grafana_data
 
 # Jaringan bridge internal terisolasi antar container
 networks:

@@ -1,3 +1,13 @@
 groups:
-  - name: initial_rules
-    rules: []
+  - name: infrastructure_alerts
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 30s
+        labels:
+          severity: critical
+          environment: production
+        annotations:
+          summary: "Layanan {{ $labels.job }} pada {{ $labels.instance }} mengalami kegagalan / mati!"
+          description: "Target monitoring {{ $labels.job }} (instance: {{ $labels.instance }}) tidak merespons probe/scrape selama lebih dari 30 detik."
+          first_action: "LANGKAH PERTAMA PENERIMA: Segera buka terminal host, jalankan 'docker compose ps' untuk mengidentifikasi container yang exited, periksa 50 baris log terakhir dengan 'docker compose logs --tail=50 {{ $labels.job }}', dan pulihkan layanan menggunakan 'docker compose start {{ $labels.job }}'."
